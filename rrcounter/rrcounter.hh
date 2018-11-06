@@ -63,27 +63,25 @@ class TimeBasedCounter : public RoundRobinCounter<_size> {
   using duration = _duration_type;
   using period = typename _duration_type::period;
 
-  void put(duration time, int count) {
+  template<typename _TimePoint>
+  void put(const _TimePoint& time_point, int count) {
+    const duration casted_time = std::chrono::time_point_cast<duration>(time_point).time_since_epoch();
+    this->put(casted_time, count);
+  }
+
+  void put(const duration time, int count) {
     size_t x = time.count();
     RoundRobinCounter<_size>::put(x, count);
   }
 
-  void put(int count) {
-    const duration casted_time =
-        std::chrono::time_point_cast<duration>(std::chrono::steady_clock::now())
-            .time_since_epoch();
-    this->put(casted_time, count);
-  }
-
-  int summate(duration time) {
-    return RoundRobinCounter<_size>::summate(time.count());
-  }
-
-  int summate() {
-    const duration casted_time =
-        std::chrono::time_point_cast<duration>(std::chrono::steady_clock::now())
-            .time_since_epoch();
+  template<typename _TimePoint>
+  int summate(const _TimePoint& time_point) {
+    const duration casted_time = std::chrono::time_point_cast<duration>(time_point).time_since_epoch();
     return this->summate(casted_time);
+  }
+
+  int summate(const duration time) {
+    return RoundRobinCounter<_size>::summate(time.count());
   }
 };
 
